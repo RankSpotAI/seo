@@ -572,7 +572,7 @@ Returns `204`. Hard delete, permanent. Any generated article is preserved and on
 
 ### Articles
 
-Articles come from `write_article` actions. They cannot be created directly. Content and status are managed by RankSpot; only metadata is editable here.
+Articles come from `write_article` actions. They cannot be created directly. Their body is editable as Markdown, every edit lands in the revision history, and nothing goes live until you publish.
 
 ```bash
 # List. contentHtml is omitted to keep payloads small.
@@ -593,10 +593,28 @@ curl -s -H "Authorization: Bearer $RANKSPOT_API_KEY" \
 curl -s -H "Authorization: Bearer $RANKSPOT_API_KEY" \
   "https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles?search=screen%20recording" | jq '.data.items[] | .title'
 
-# One article, with full HTML. No data envelope.
+# One article, with the body as HTML and as Markdown. No data envelope.
 curl -s -H "Authorization: Bearer $RANKSPOT_API_KEY" \
-  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id> | jq '{title, slug, status, contentHtml}'
+  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id> | jq '{title, slug, status, contentMarkdown}'
+
+# Edit: send the WHOLE edited Markdown back. Anything left out is deleted.
+# Reuse one sessionId for every write in a conversation so it shows as one revision.
+curl -s -X PATCH -H "Authorization: Bearer $RANKSPOT_API_KEY" -H "Content-Type: application/json" \
+  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id> \
+  -d '{"contentMarkdown": "## Why start a blog\n\n...", "sessionId": "chat-2026-11-07-pricing"}'
+
+# Publish (or update in place if already live) to a connected integration.
+curl -s -X POST -H "Authorization: Bearer $RANKSPOT_API_KEY" -H "Content-Type: application/json" \
+  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id>/publish -d '{"integration": "wordpress"}'
+
+# History: the last 10 revisions, newest first, and undo by restoring one.
+curl -s -H "Authorization: Bearer $RANKSPOT_API_KEY" \
+  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id>/revisions | jq '.[] | {id, source, updatedAt, live}'
+curl -s -X POST -H "Authorization: Bearer $RANKSPOT_API_KEY" \
+  https://api.rankspot.ai/v1/workspaces/$RANKSPOT_WORKSPACE_ID/articles/<id>/revisions/<revision-id>/restore
 ```
+
+**Editing the Markdown:** keep lines of HTML (videos and similar) as they are. Links are `[text](url)`; internal links are dofollow and external ones nofollow automatically. Only for an external link that must be dofollow, write `<a href="https://example.com" rel="dofollow">anchor</a>` (`rel="nofollow"` does the reverse for an internal link).
 
 | Parameter    | Values                                                | Default |
 |--------------|-------------------------------------------------------|---------|
@@ -1308,7 +1326,7 @@ Google applies its own quotas on top: roughly 2,000 URL inspections per day and 
 - Sort by `compositeScore`. It blends opportunity with AI relevance and is the best single signal.
 - Use `/cluster` before planning an article so the piece covers a broader semantic range.
 - Search `GET /articles?search=` before planning a new one, so you do not write the same piece twice.
-- `contentHtml` is only in single-article responses. Fetch by ID for the full content.
+- `contentHtml` and `contentMarkdown` are only in single-article responses. Fetch by ID for the full content.
 - For "when was this last refreshed" use `lastPublishedAt`, not `updatedAt`. For the publication date use `firstPublishedAt`.
 
 **Competitors and links**
