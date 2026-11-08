@@ -5,7 +5,7 @@ Programmatic SEO and AI visibility for agents. See how ChatGPT, Perplexity and G
 ## Install
 
 ```bash
-npx skills add RankSpotAI/rankspot-skill --skill rankspot
+npx skills add RankSpotAI/seo --skill rankspot
 ```
 
 Then set your API key (get it from **Account settings, then API Keys** in the [RankSpot dashboard](https://rankspot.ai)) and the workspace to work on:
