@@ -2,7 +2,7 @@
 name: rankspot
 description: RankSpot is an SEO and AI visibility platform. Use this skill when the user wants to see how AI answer engines describe their brand, track prompts and read the answers ChatGPT, Perplexity and Google gave, work through cited pages and fanout queries, research competitors, discover and score keywords, analyse backlinks, mine "People Also Ask" questions, plan and track SEO work as actions, generate and manage articles, run live Google searches or page fetches, or analyse Google Search Console performance and indexing via the RankSpot API.
 homepage: https://rankspot.ai
-metadata: {"clawdbot":{"emoji":"📈","requires":{"env":["RANKSPOT_API_KEY"]}}}
+metadata: {"openclaw":{"emoji":"📈","homepage":"https://rankspot.ai","requires":{"bins":["curl","jq"],"env":["RANKSPOT_API_KEY"]},"primaryEnv":"RANKSPOT_API_KEY"}}
 ---
 
 ## FIRST TIME READING THIS SKILL? STOP AND READ THIS SECTION TO THE USER.
